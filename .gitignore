@@ -1,0 +1,46 @@
+# Build outputs
+*.o
+*.bin
+*.elf
+*.iso
+*.img
+
+# Compiled objects
+build/
+bin/
+obj/
+
+# Cross-compiler build artifacts
+cross-compiler/
+opt/
+
+# QEMU logs and state
+qemu.log
+*.qcow2
+
+# IDE and editor files
+.vscode/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Dependency files
+*.d
+
+# Debug files
+*.map
+*.sym
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+
+# OS-specific files
+Thumbs.db
+desktop.ini
+
+# Backup files
+*.bak
+*.backup
