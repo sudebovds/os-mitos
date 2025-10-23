@@ -9,7 +9,7 @@ A fully functional Windows-like operating system built from scratch using C/C++ 
 ## Features (Planned)
 
 - [x] Development environment setup
-- [ ] Custom bootloader (BIOS/MBR)
+- [x] Custom bootloader (BIOS/MBR)
 - [ ] Kernel with interrupt handling
 - [ ] Memory management (paging, heap allocation)
 - [ ] Multitasking and process scheduling

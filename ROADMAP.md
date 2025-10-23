@@ -11,12 +11,12 @@ This roadmap outlines the step-by-step development of a Windows-like x86 operati
 **Goal**: Prepare tools and testing environment
 
 **Tasks**:
-- [ ] Install cross-compiler toolchain (GCC for i686-elf target)
-- [ ] Install NASM assembler for x86 assembly
-- [ ] Setup QEMU or VirtualBox for testing
-- [ ] Install build tools (Make/CMake)
-- [ ] Create project directory structure
-- [ ] Setup debugging tools (GDB)
+- [x] Install cross-compiler toolchain (GCC for i686-elf target)
+- [x] Install NASM assembler for x86 assembly
+- [x] Setup QEMU or VirtualBox for testing
+- [x] Install build tools (Make/CMake)
+- [x] Create project directory structure
+- [x] Setup debugging tools (GDB)
 
 **Output**: Working development environment
 
