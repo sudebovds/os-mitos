@@ -76,8 +76,7 @@ Your immediate next steps with 3 setup options:
    - Check off items in `docs/SETUP_CHECKLIST.md`
 
 2. **Verify Everything Works**
-   ```powershell
-   .\tools\verify.ps1
+   ```powershell .\tools\verify.ps1
    ```
    All tools should show ✓ green checkmarks
 
