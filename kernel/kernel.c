@@ -139,6 +139,9 @@ bool send_message(uint32_t port_id, message_t* msg) {
     port->queue_tail = next_tail;
     
     // Wake up receiver if blocked
+    if (port->owner_pid >= MAX_PROCESSES) {
+        return false; // Invalid owner_pid, out of bounds
+    }
     pcb_t* receiver = &processes[port->owner_pid];
     if (receiver->state == PROCESS_BLOCKED && receiver->waiting_for_msg) {
         receiver->state = PROCESS_READY;
