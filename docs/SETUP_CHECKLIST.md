@@ -117,10 +117,10 @@ Open a **NEW** PowerShell terminal in VS Code and test each command:
 
 ## Step 7: Install VS Code Extensions
 
-- [ ] **C/C++** (ms-vscode.cpptools) - C/C++ IntelliSense
-- [ ] **x86 and x86_64 Assembly** - Assembly syntax highlighting
-- [ ] **Hex Editor** (ms-vscode.hexeditor) - View binary files
-- [ ] **Makefile Tools** (ms-vscode.makefile-tools) - Makefile support
+- [x] **C/C++** (ms-vscode.cpptools) - C/C++ IntelliSense
+- [x] **x86 and x86_64 Assembly** - Assembly syntax highlighting
+- [x] **Hex Editor** (ms-vscode.hexeditor) - View binary files
+- [x] **Makefile Tools** (ms-vscode.makefile-tools) - Makefile support
 
 **Status**: ⬜ Not Started | ⏳ In Progress | ✅ Complete
 
@@ -146,11 +146,11 @@ Use this section to note any issues you encounter:
 
 Before proceeding to Phase 1.2 (Creating the Bootloader):
 
-- [ ] All tools installed and working
-- [ ] PATH configured correctly
-- [ ] All verification commands pass
-- [ ] VS Code extensions installed
-- [ ] QEMU tested and working
+- [x] All tools installed and working
+- [x] PATH configured correctly
+- [x] All verification commands pass
+- [x] VS Code extensions installed
+- [x] QEMU tested and working
 
 **Overall Status**: ⬜ Not Ready | ⏳ Almost There | ✅ Ready for Phase 1.2!
 
