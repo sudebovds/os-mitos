@@ -32,7 +32,6 @@ A fully functional Windows-like operating system built from scratch using C/C++ 
 ## Documentation
 
 - [Development Roadmap](ROADMAP.md) - Detailed development plan and milestones
-- [Setup Guide](docs/SETUP_GUIDE.md) - How to set up the development environment
 - [Architecture](docs/ARCHITECTURE.md) - System architecture documentation (coming soon)
 - [API Reference](docs/API.md) - Kernel API documentation (coming soon)
 
