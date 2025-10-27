@@ -168,7 +168,7 @@ message_t* receive_message(uint32_t port_id, bool blocking) {
         if (blocking) {
             // Block the process
             processes[current_pid].state = PROCESS_BLOCKED;
-            processes[current_pid].waiting_for_msg = (message_t*)port_id;
+            processes[current_pid].waiting_for_msg = port_id;
             // Trigger scheduler
             schedule();
         }
