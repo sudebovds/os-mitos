@@ -211,27 +211,25 @@ void schedule() {
 }
 
 // System call handler
-void syscall_handler(uint32_t syscall_num, uint32_t arg1, uint32_t arg2, uint32_t arg3) {
+int syscall_handler(uint32_t syscall_num, uint32_t arg1, uint32_t arg2, uint32_t arg3) {
     switch (syscall_num) {
         case SYSCALL_SEND_MSG:
-            send_message(arg1, (message_t*)arg2);
-            break;
+            return send_message(arg1, (message_t*)arg2);
             
         case SYSCALL_RECEIVE_MSG:
-            receive_message(arg1, arg2);
-            break;
+            return receive_message(arg1, arg2);
             
         case SYSCALL_CREATE_PORT:
-            create_port();
-            break;
+            return create_port();
             
         case SYSCALL_YIELD:
             processes[current_pid].state = PROCESS_READY;
             schedule();
-            break;
+            return 0;
             
         default:
             kprint("Unknown system call\n");
+            return -1;
     }
 }
 
