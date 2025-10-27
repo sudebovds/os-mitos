@@ -163,16 +163,17 @@ message_t* receive_message(uint32_t port_id, bool blocking) {
     
     if (!port) return NULL;
     
-    // Check if there are messages
-    if (port->queue_head == port->queue_tail) {
-        if (blocking) {
-            // Block the process
-            processes[current_pid].state = PROCESS_BLOCKED;
-            processes[current_pid].waiting_for_msg = port_id;
-            // Trigger scheduler
-            schedule();
+    // Wait for a message if blocking
+    while (port->queue_head == port->queue_tail) {
+        if (!blocking) {
+            return NULL;
         }
-        return NULL;
+        // Block the process
+        processes[current_pid].state = PROCESS_BLOCKED;
+        processes[current_pid].waiting_for_msg = (message_t*)port_id;
+        // Trigger scheduler
+        schedule();
+        // After being scheduled again, loop to check for message
     }
     
     // Get message from queue
