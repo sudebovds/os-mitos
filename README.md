@@ -10,7 +10,7 @@ A fully functional Windows-like operating system built from scratch using C/C++ 
 
 - [x] Development environment setup
 - [x] Custom bootloader (BIOS/MBR)
-- [ ] Kernel with interrupt handling
+- [x] Kernel with interrupt handling
 - [ ] Memory management (paging, heap allocation)
 - [ ] Multitasking and process scheduling
 - [ ] File system (FAT32)
