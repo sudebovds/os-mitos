@@ -1,79 +1,185 @@
-; MitOS Bootloader
-; Simple bootloader that prints a message and hangs
-; This is the first code that runs when the computer starts
+; MitOS Microkernel Bootloader
+; Loads microkernel from disk and switches to protected mode
 
-[org 0x7c00]              ; BIOS loads bootloader at address 0x7C00
-[bits 16]                 ; We start in 16-bit real mode
+[org 0x7c00]
+[bits 16]
+
+; Constants
+KERNEL_OFFSET equ 0x1000
 
 start:
     ; Set up segments
-    xor ax, ax            ; Zero out AX register
-    mov ds, ax            ; Set Data Segment to 0
-    mov es, ax            ; Set Extra Segment to 0
-    mov ss, ax            ; Set Stack Segment to 0
-    mov sp, 0x7c00        ; Set Stack Pointer (grows downward from bootloader)
-
-    ; Clear screen
-    call clear_screen
-
-    ; Print welcome message
-    mov si, msg_welcome   ; SI = pointer to message
+    xor ax, ax
+    mov ds, ax
+    mov es, ax
+    mov ss, ax
+    mov sp, 0x7c00
+    
+    ; Save boot drive
+    mov [BOOT_DRIVE], dl
+    
+    ; Print loading message
+    mov si, MSG_LOADING
     call print_string
-
-    ; Print OS name
-    mov si, msg_os_name
-    call print_string
-
-    ; Print status
-    mov si, msg_status
-    call print_string
-
-    ; Hang (infinite loop)
+    
+    ; Load kernel from disk
+    call load_kernel
+    
+    ; Switch to protected mode
+    call switch_to_pm
+    
+    ; Never reached
     jmp $
 
 ;-------------------------------------------------------------------------------
-; Function: clear_screen
-; Clears the screen using BIOS interrupt
+; Load kernel from disk
 ;-------------------------------------------------------------------------------
-clear_screen:
-    pusha                 ; Save all registers
-    mov ah, 0x00          ; Set video mode
-    mov al, 0x03          ; 80x25 text mode
-    int 0x10              ; BIOS video services
-    popa                  ; Restore all registers
+load_kernel:
+    pusha
+    
+    mov si, MSG_LOAD_KERNEL
+    call print_string
+    
+    ; Setup disk read
+    mov bx, KERNEL_OFFSET   ; Load to 0x1000
+    mov dh, 15              ; Load 15 sectors
+    mov dl, [BOOT_DRIVE]
+    call disk_load
+    
+    mov si, MSG_KERNEL_LOADED
+    call print_string
+    
+    popa
     ret
 
 ;-------------------------------------------------------------------------------
-; Function: print_string
-; Prints a null-terminated string to screen
-; Input: SI = pointer to string
+; Disk load function
 ;-------------------------------------------------------------------------------
+disk_load:
+    pusha
+    push dx
+    
+    mov ah, 0x02    ; BIOS read function
+    mov al, dh      ; Number of sectors
+    mov ch, 0x00    ; Cylinder 0
+    mov cl, 0x02    ; Start from sector 2
+    mov dh, 0x00    ; Head 0
+    
+    int 0x13        ; BIOS disk interrupt
+    
+    jc disk_error
+    
+    pop dx
+    cmp al, dh      ; Check sectors read
+    jne sectors_error
+    
+    popa
+    ret
+
+disk_error:
+    mov si, MSG_DISK_ERROR
+    call print_string
+    jmp $
+
+sectors_error:
+    mov si, MSG_SECTORS_ERROR
+    call print_string
+    jmp $
+
+;-------------------------------------------------------------------------------
+; Switch to protected mode
+;-------------------------------------------------------------------------------
+switch_to_pm:
+    cli
+    lgdt [gdt_descriptor]
+    
+    mov eax, cr0
+    or eax, 0x1
+    mov cr0, eax
+    
+    jmp CODE_SEG:init_pm
+
+;-------------------------------------------------------------------------------
+; 32-bit protected mode
+;-------------------------------------------------------------------------------
+[bits 32]
+init_pm:
+    mov ax, DATA_SEG
+    mov ds, ax
+    mov ss, ax
+    mov es, ax
+    mov fs, ax
+    mov gs, ax
+    
+    mov ebp, 0x90000
+    mov esp, ebp
+    
+    call KERNEL_OFFSET
+    
+    jmp $
+
+;-------------------------------------------------------------------------------
+; 16-bit functions
+;-------------------------------------------------------------------------------
+[bits 16]
+
 print_string:
-    pusha                 ; Save all registers
-    mov ah, 0x0e          ; BIOS teletype output
-
-.print_char:
-    lodsb                 ; Load byte from SI into AL, increment SI
-    cmp al, 0             ; Check if null terminator
-    je .done              ; If zero, we're done
-    int 0x10              ; Print character in AL
-    jmp .print_char       ; Print next character
-
+    pusha
+    mov ah, 0x0e
+.loop:
+    lodsb
+    cmp al, 0
+    je .done
+    int 0x10
+    jmp .loop
 .done:
-    popa                  ; Restore all registers
+    popa
     ret
 
 ;-------------------------------------------------------------------------------
-; Data section
+; GDT
 ;-------------------------------------------------------------------------------
-msg_welcome:    db 'Welcome to MitOS!', 0x0D, 0x0A, 0x0D, 0x0A, 0
-msg_os_name:    db 'MitOS v0.1 - Bootloader', 0x0D, 0x0A, 0
-msg_status:     db 'Status: Bootloader loaded successfully!', 0x0D, 0x0A, 0x0D, 0x0A
-                db 'This is a 16-bit real mode bootloader.', 0x0D, 0x0A
-                db 'Kernel loading will be implemented next...', 0x0D, 0x0A, 0
+gdt_start:
+    dd 0x0
+    dd 0x0
+
+gdt_code:
+    dw 0xffff
+    dw 0x0
+    db 0x0
+    db 10011010b
+    db 11001111b
+    db 0x0
+
+gdt_data:
+    dw 0xffff
+    dw 0x0
+    db 0x0
+    db 10010010b
+    db 11001111b
+    db 0x0
+
+gdt_end:
+
+gdt_descriptor:
+    dw gdt_end - gdt_start - 1
+    dd gdt_start
+
+CODE_SEG equ gdt_code - gdt_start
+DATA_SEG equ gdt_data - gdt_start
 
 ;-------------------------------------------------------------------------------
-; Boot sector padding and signature
+; Data
 ;-------------------------------------------------------------------------------
-times 510-($-$$) db 0     ; Pad with zeros to byte 510
-dw 0xAA55                 ; Boot signature (must be at bytes 511-512)
+BOOT_DRIVE: db 0
+MSG_LOADING: db 'MitOS Microkernel Bootloader v0.1', 0x0D, 0x0A, 0
+MSG_LOAD_KERNEL: db 'Loading microkernel...', 0x0D, 0x0A, 0
+MSG_KERNEL_LOADED: db 'Microkernel loaded successfully!', 0x0D, 0x0A, 0
+MSG_DISK_ERROR: db 'Disk read error!', 0x0D, 0x0A, 0
+MSG_SECTORS_ERROR: db 'Sectors error!', 0x0D, 0x0A, 0
+
+;-------------------------------------------------------------------------------
+; Boot signature
+;-------------------------------------------------------------------------------
+times 510-($-$$) db 0
+dw 0xAA55
