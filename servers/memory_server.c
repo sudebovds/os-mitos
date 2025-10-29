@@ -103,7 +103,7 @@ void mem_free(void* ptr){
     heap_block_t* current = heap_start;
     while(current != NULL && current->next != NULL){
         if(current->free && current->next->free){
-            current->size += sizeof(heap_block_t) + sizeof(heap_block_t);
+            current->size += sizeof(heap_block_t) + current->next->size;
             current->next = current->next->next;
         } else {
             current = current->next;
