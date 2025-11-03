@@ -71,7 +71,9 @@ $(MICROKERNEL_OBJ): $(MICROKERNEL_SRC) | $(BUILD_DIR)
 # Link microkernel
 $(MICROKERNEL_BIN): $(KERNEL_ENTRY_OBJ) $(MICROKERNEL_OBJ)
 	@echo "[LD]  Linking microkernel..."
-	$(LD) $(KERNEL_LDFLAGS) -o $@ $^
+	$(LD) $(KERNEL_LDFLAGS) -o $(BUILD_DIR)/microkernel.elf $^
+	@echo "[OBJCOPY] Converting to flat binary..."
+	objcopy -O binary $(BUILD_DIR)/microkernel.elf $@
 
 # Memory server
 $(MEMORY_SERVER_OBJ): $(MEMORY_SERVER_SRC) | $(BUILD_DIR)
