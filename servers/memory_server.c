@@ -50,6 +50,12 @@ void memory_server_init(){
     // Register with microkernel
 
     uint32_t port = syscall_create_port(MEMORY_SERVER_PORT);
+    
+    // Check if port creation succeeded (assuming 0 or negative value indicates error)
+    if (port == 0 || port == (uint32_t)-1) {
+        // Port creation failed - halt or handle error
+        while(1); // Halt execution
+    }
 
     // Initialize heap at a specific address
 
