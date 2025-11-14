@@ -10,7 +10,7 @@ QEMU = qemu-system-i386
 CFLAGS = -ffreestanding -m32 -g -c -Wall -Wextra
 LDFLAGS = -nostdlib
 KERNEL_LDFLAGS = -T kernel/linker.ld $(LDFLAGS)
-SERVER_LDFLAGS = -T servers/server_linker.ld $(LDFLAGS)
+SERVER_LDFLAGS = $(LDFLAGS)
 
 # Directories
 BUILD_DIR = build
