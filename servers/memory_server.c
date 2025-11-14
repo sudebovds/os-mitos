@@ -16,7 +16,7 @@ enum {
     MEM_GET_INFO
 };
 
-typedef struct{
+typedef struct {
     uint32_t total_memory;
     uint32_t free_memory;
     uint32_t used_memory;
