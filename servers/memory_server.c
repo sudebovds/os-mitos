@@ -140,26 +140,24 @@ void memory_server_main(){
 
         if(request == NULL) continue;
 
-        if(request != NULL){
-            switch(request->type){
-                case MEM_ALLOCATE:{
-                    void* addr = memory_allocator(request->size);
-                    // Return allocated address
-                    syscall_send_response(request->sender, addr);
-                    break;
-                }
-                case MEM_FREE:
-                    mem_free(request->ptr);
-                    syscall_send_response(request->sender, 0);
-                    break;
-                case MEM_GET_INFO:
-                    mem_info_t info = get_memory_info();
-                    syscall_send_response(request->sender, &info);
-                    break;
-                default:
-                    // Unknown request
-                    syscall_send_response(request->sender, -1);
+        switch(request->type){
+            case MEM_ALLOCATE:{
+                void* addr = memory_allocator(request->size);
+                // Return allocated address
+                syscall_send_response(request->sender, addr);
+                break;
             }
+            case MEM_FREE:
+                mem_free(request->ptr);
+                syscall_send_response(request->sender, 0);
+                break;
+            case MEM_GET_INFO:
+                mem_info_t info = get_memory_info();
+                syscall_send_response(request->sender, &info);
+                break;
+            default:
+                // Unknown request
+                syscall_send_response(request->sender, -1);
         }
     }
 };
