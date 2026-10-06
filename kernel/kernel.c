@@ -3,6 +3,7 @@
 
 #include <stdint.h>
 #include <stdbool.h>
+#include <stddef.h>  // For NULL
 
 // VGA text mode for early debugging
 #define VGA_MEMORY 0xB8000
@@ -62,12 +63,14 @@ typedef struct {
 static pcb_t processes[MAX_PROCESSES];
 static port_t ports[MAX_PORTS];
 static uint32_t current_pid = 0;
-static uint32_t next_pid = 1;
 static uint32_t next_port_id = 1;
 
 // VGA cursor position
 static uint32_t cursor_x = 0;
 static uint32_t cursor_y = 0;
+
+// Forward declarations
+void schedule(void);
 
 void kputchar(char c) {
     if (c == '\n') {
@@ -93,7 +96,7 @@ void kprint(const char* str) {
     }
 }
 
-void clear_screen() {
+void clear_screen(void) {
     uint16_t* vga = (uint16_t*)VGA_MEMORY;
     for (int i = 0; i < VGA_WIDTH * VGA_HEIGHT; i++) {
         vga[i] = 0x0F00 | ' ';
@@ -103,7 +106,7 @@ void clear_screen() {
 }
 
 // IPC: Create a new communication port
-uint32_t create_port() {
+uint32_t create_port(void) {
     for (int i = 0; i < MAX_PORTS; i++) {
         if (ports[i].owner_pid == 0) {
             ports[i].owner_pid = current_pid;
@@ -140,7 +143,7 @@ bool send_message(uint32_t port_id, message_t* msg) {
     
     // Wake up receiver if blocked
     if (port->owner_pid >= MAX_PROCESSES) {
-        return false; // Invalid owner_pid, out of bounds
+        return false;  // Invalid PID
     }
     pcb_t* receiver = &processes[port->owner_pid];
     if (receiver->state == PROCESS_BLOCKED && receiver->waiting_for_msg) {
@@ -171,9 +174,8 @@ message_t* receive_message(uint32_t port_id, bool blocking) {
         // Block the process
         processes[current_pid].state = PROCESS_BLOCKED;
         processes[current_pid].waiting_for_msg = (message_t*)port_id;
-        // Trigger scheduler
         schedule();
-        // After being scheduled again, loop to check for message
+        // When we return here, there should be a message
     }
     
     // Get message from queue
@@ -183,7 +185,7 @@ message_t* receive_message(uint32_t port_id, bool blocking) {
 }
 
 // Simple round-robin scheduler
-void schedule() {
+void schedule(void) {
     // Save current process state (would save registers here)
     
     // Find next ready process
@@ -211,30 +213,32 @@ void schedule() {
 }
 
 // System call handler
-int syscall_handler(uint32_t syscall_num, uint32_t arg1, uint32_t arg2, uint32_t arg3) {
+void* syscall_handler(uint32_t syscall_num, uint32_t arg1, uint32_t arg2, uint32_t arg3) {
+    (void)arg3;  // Suppress unused parameter warning
+    
     switch (syscall_num) {
         case SYSCALL_SEND_MSG:
-            return send_message(arg1, (message_t*)arg2);
+            return (void*)(uintptr_t)send_message(arg1, (message_t*)arg2);
             
         case SYSCALL_RECEIVE_MSG:
-            return receive_message(arg1, arg2);
+            return receive_message(arg1, (bool)arg2);
             
         case SYSCALL_CREATE_PORT:
-            return create_port();
+            return (void*)(uintptr_t)create_port();
             
         case SYSCALL_YIELD:
             processes[current_pid].state = PROCESS_READY;
             schedule();
-            return 0;
+            return NULL;
             
         default:
             kprint("Unknown system call\n");
-            return -1;
+            return NULL;
     }
 }
 
 // Initialize the first system server (Memory Manager)
-void init_memory_server() {
+void init_memory_server(void) {
     // Create process for memory server
     processes[1].pid = 1;
     processes[1].state = PROCESS_READY;
@@ -245,7 +249,7 @@ void init_memory_server() {
 }
 
 // Initialize the VFS server
-void init_vfs_server() {
+void init_vfs_server(void) {
     processes[2].pid = 2;
     processes[2].state = PROCESS_READY;
     processes[2].priority = 9;
@@ -255,7 +259,7 @@ void init_vfs_server() {
 }
 
 // Initialize the Device Manager server
-void init_device_server() {
+void init_device_server(void) {
     processes[3].pid = 3;
     processes[3].state = PROCESS_READY;
     processes[3].priority = 9;
@@ -265,7 +269,7 @@ void init_device_server() {
 }
 
 // Microkernel main entry point
-void kernel_main() {
+void kernel_main(void) {
     // Clear screen and print header
     clear_screen();
     kprint("================================================================================\n");
@@ -303,12 +307,12 @@ void kernel_main() {
     kprint("                    Microkernel initialization complete!                       \n");
     kprint("================================================================================\n");
     
-    // Start scheduling
-    kprint("\nStarting scheduler...\n");
+    // Main kernel loop - in a real microkernel this would handle interrupts
+    kprint("\nMicrokernel is now running...\n");
+    kprint("Waiting for interrupts and system calls...\n");
     
-    // Main kernel loop
+    // Infinite loop (in real OS, this would be interrupt-driven)
     while (1) {
-        schedule();
         asm volatile("hlt");  // Halt until interrupt
     }
 }
